@@ -21,7 +21,9 @@ import {
   Lightbulb,
   Cpu,
   Info,
-  DollarSign
+  DollarSign,
+  Sun,
+  Moon
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -33,6 +35,26 @@ export default function App() {
   const [isAdMobOpen, setIsAdMobOpen] = useState(false);
   const [activeMobileMenu, setActiveMobileMenu] = useState(false);
   const [testMode, setTestMode] = useState(true);
+
+  // Theme selection state with localStorage persistence
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    try {
+      const savedTheme = localStorage.getItem("ovie_theme");
+      return (savedTheme === "light" || savedTheme === "dark") ? savedTheme : "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("ovie_theme", nextTheme);
+    } catch (err) {
+      console.error("Failed to save theme choice:", err);
+    }
+  };
 
   // Locked chapter pending unlock flow state
   const [pendingUnlockId, setPendingUnlockId] = useState<string | null>(null);
@@ -83,10 +105,33 @@ export default function App() {
       const savedQuiz = localStorage.getItem("ovie_quiz_completed");
       const savedAdMob = localStorage.getItem("ovie_admob_revenue");
       const savedSupport = localStorage.getItem("ovie_support_count");
+      const savedCustomAdMob = localStorage.getItem("ovie_custom_admob_config");
 
       if (savedUnlocked) setUnlockedPremiumLessons(JSON.parse(savedUnlocked));
       if (savedQuiz) setQuizCompletedLessons(JSON.parse(savedQuiz));
       if (savedSupport) setSupportCount(parseInt(savedSupport, 10));
+      
+      // Load custom AdMob/AdSense setup if active
+      if (savedCustomAdMob) {
+        const config = JSON.parse(savedCustomAdMob);
+        if (config.isLinked) {
+          setAdUnits((prev) =>
+            prev.map((unit) => {
+              if (unit.type === "Banner" && config.bannerId) {
+                return { ...unit, adMobId: config.bannerId };
+              }
+              if (unit.type === "Interstitial" && config.interstitialId) {
+                return { ...unit, adMobId: config.interstitialId };
+              }
+              if (unit.type === "Rewarded" && config.rewardedId) {
+                return { ...unit, adMobId: config.rewardedId };
+              }
+              return unit;
+            })
+          );
+        }
+      }
+
       if (savedAdMob) {
         const parsed = JSON.parse(savedAdMob);
         setStats((prev) => ({
@@ -322,16 +367,16 @@ export default function App() {
   };
 
   return (
-    <div className="bg-slate-900 text-slate-100 h-screen max-h-screen flex flex-col overflow-hidden font-sans">
+    <div className={`h-screen max-h-screen flex flex-col overflow-hidden font-sans transition-colors duration-300 ${theme === "light" ? "bg-slate-50 text-slate-900" : "bg-slate-900 text-slate-100"}`}>
       
       {/* Upper Navigation Bar */}
-      <header className="bg-slate-950 border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0 select-none">
+      <header className={`border-b px-4 py-3 flex items-center justify-between shrink-0 select-none transition-all duration-300 ${theme === "light" ? "bg-white border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"}`}>
         <div className="flex items-center gap-3">
           {/* Mobile Hamburguer drawer */}
           <button
             onClick={() => setActiveMobileMenu(!activeMobileMenu)}
             id="mobile-menu-trigger"
-            className="md:hidden p-1 bg-slate-900 border border-slate-800 text-slate-350 hover:text-slate-100 rounded"
+            className={`md:hidden p-1 border rounded transition-colors duration-300 ${theme === "light" ? "bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200" : "bg-slate-900 border-slate-800 text-slate-350 hover:text-slate-100"}`}
           >
             <Menu size={18} />
           </button>
@@ -340,14 +385,14 @@ export default function App() {
             <OvieCapIcon className="w-7 h-7 drop-shadow" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-black tracking-wider text-amber-500 uppercase">
+                <span className={`text-xs font-black tracking-wider uppercase ${theme === "light" ? "text-amber-600" : "text-amber-500"}`}>
                   Ovie Systems
                 </span>
-                <span className="text-[10px] bg-amber-900/30 text-amber-400 px-1 rounded leading-normal border border-amber-800/30">
+                <span className={`text-[10px] px-1 rounded leading-normal border ${theme === "light" ? "bg-amber-100 text-amber-800 border-amber-300/40" : "bg-amber-900/30 text-amber-400 border-amber-800/30"}`}>
                   v2.3
                 </span>
               </div>
-              <p className="text-[9px] text-slate-400 leading-none">
+              <p className={`text-[9px] leading-none ${theme === "light" ? "text-slate-500 font-medium" : "text-slate-400"}`}>
                 Interactive Learning Academy
               </p>
             </div>
@@ -358,9 +403,9 @@ export default function App() {
         <div className="flex items-center gap-3">
           
           {/* Highlight simulated AdMob Revenue right inside the top bar header for maximum feedback */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 flex items-center gap-1.5 text-slate-200">
+          <div className={`border rounded-lg px-2.5 py-1 flex items-center gap-1.5 transition-all duration-300 ${theme === "light" ? "bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-900 border-slate-800 text-slate-200"}`}>
             <DollarSign size={11} className="text-yellow-500 shrink-0" />
-            <span className="text-[9px] font-semibold text-slate-400 font-sans tracking-wide">
+            <span className={`text-[9px] font-semibold font-sans tracking-wide ${theme === "light" ? "text-slate-600" : "text-slate-400"}`}>
               Est. Ad Revenue:
             </span>
             <span className="text-[11px] font-bold font-mono text-yellow-500">
@@ -371,10 +416,12 @@ export default function App() {
           <button
             onClick={() => setIsAdMobOpen(!isAdMobOpen)}
             id="toggle-admob-navbar"
-            className={`text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+            className={`text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all duration-300 ${
               isAdMobOpen
                 ? "bg-yellow-500 hover:bg-yellow-400 text-slate-950 shadow shadow-yellow-500/20"
-                : "bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800"
+                : theme === "light"
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
+                  : "bg-slate-900 hover:bg-slate-850 text-slate-200 border border-slate-800"
             }`}
           >
             <span className="shrink-0 font-sans">AdMob Debugger</span>
@@ -384,6 +431,24 @@ export default function App() {
               }`}
             />
           </button>
+
+          {/* Theme Switcher Button */}
+          <button
+            onClick={toggleTheme}
+            id="toggle-app-theme"
+            className={`p-1.5 rounded-lg border transition-all duration-300 active:scale-95 ${
+              theme === "light"
+                ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-amber-600"
+                : "bg-slate-900 hover:bg-slate-850 border-slate-800 text-yellow-400"
+            }`}
+            title={theme === "light" ? "Switch to Dark Theme" : "Switch to Light Theme"}
+          >
+            {theme === "light" ? (
+              <Moon size={14} className="fill-amber-600/10" />
+            ) : (
+              <Sun size={14} className="fill-yellow-400/10" />
+            )}
+          </button>
         </div>
       </header>
 
@@ -392,6 +457,7 @@ export default function App() {
         
         {/* Course Sidebar */}
         <Sidebar
+          theme={theme}
           chapters={chapters}
           currentLesson={currentLesson}
           setCurrentLesson={handleTransitionLesson}
@@ -412,6 +478,7 @@ export default function App() {
           {/* Half Panel 1: Lesson Instructions */}
           <div className="flex-1 min-w-[280px] h-full overflow-hidden">
             <LessonContent
+              theme={theme}
               lesson={currentLesson}
               onPassedQuiz={handlePassedQuiz}
               quizPassed={quizCompletedLessons.includes(currentLesson.id)}
@@ -419,8 +486,9 @@ export default function App() {
           </div>
 
           {/* Half Panel 2: Code Editor Sandbox Playground */}
-          <div className="flex-1 min-w-[280px] h-full overflow-hidden border-t md:border-t-0 md:border-l border-slate-800/80">
+          <div className={`flex-1 min-w-[280px] h-full overflow-hidden border-t md:border-t-0 md:border-l transition-all duration-300 ${theme === "light" ? "border-slate-300" : "border-slate-800/80"}`}>
             <CodeSandbox
+              theme={theme}
               lesson={currentLesson}
               onCodeRunStatus={handleCodeRunStatus}
             />
@@ -442,14 +510,15 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, x: 200 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95, x: 200 }}
-                className="absolute right-4 bottom-16 md:bottom-20 pointer-events-auto w-full max-w-sm border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[525px]"
+                className={`absolute right-4 bottom-16 md:bottom-20 pointer-events-auto w-full max-w-sm border rounded-xl overflow-hidden shadow-2xl flex flex-col h-[525px] transition-all duration-300 ${theme === "light" ? "border-slate-300 bg-white" : "border-slate-800 bg-slate-900"}`}
               >
-                <div className="p-2 bg-slate-950 text-[10px] font-mono font-black text-amber-500 text-center flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none border-b border-slate-900 leading-none shrink-0 animate-pulse">
+                <div className={`p-2 text-[10px] font-mono font-black text-center flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none border-b leading-none shrink-0 animate-pulse ${theme === "light" ? "bg-slate-100 text-amber-700 border-slate-200" : "bg-slate-950 text-amber-500 border-slate-900"}`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                   <span>✥ Drag Panel Anywhere • Click Close to Dismiss</span>
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <AdMobCenter
+                    theme={theme}
                     stats={stats}
                     adUnits={adUnits}
                     setStats={setStats}
@@ -467,6 +536,7 @@ export default function App() {
 
       {/* Floating Bottom Menu & Sandbox Testing Center connected to GitHub */}
       <BottomMenu
+        theme={theme}
         testMode={testMode}
         supportCount={supportCount}
         onRunTestAd={(type) => {

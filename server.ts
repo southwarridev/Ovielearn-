@@ -416,6 +416,35 @@ function runLocalCompiler(code: string, lessonId: string | undefined): {
       const line = rawLine.trim();
       if (!line || line.startsWith("//")) continue;
 
+      // Handle raw mock triggers for mobile compiler simulation
+      if (line.startsWith("makeText(")) {
+        compilationLogs += `[Kpalasa-UI] Parsing view: Text Label component declared.\n`;
+        // If it outputs balance or money, capture it in simulator stdout
+        if (line.includes("Active Balance:")) {
+          stdoutParts.push("Active Balance: $148.02");
+        }
+        continue;
+      }
+      if (line.startsWith("makeButton(")) {
+        compilationLogs += `[Kpalasa-UI] Parsing trigger: Dynamic Button component generated.\n`;
+        // Check for quick inner execution
+        if (line.includes("seeAm")) {
+          const match = line.match(/seeAm\s+["']([^"']+)["']/);
+          if (match) {
+            stdoutParts.push(`[Runtime Event] ${match[1]}`);
+          }
+        }
+        continue;
+      }
+      if (line.startsWith("makeInput(")) {
+        compilationLogs += `[Kpalasa-UI] Parsing input: Text Field form bind created.\n`;
+        continue;
+      }
+      if (line.startsWith("makeLayout(")) {
+        compilationLogs += `[Kpalasa-UI] Initializing grid viewport layout: '${line}' container\n`;
+        continue;
+      }
+
       // Detect seeAm statement
       if (line.startsWith("seeAm ")) {
         const exprStr = line.substring(6).trim();
@@ -501,6 +530,10 @@ function runLocalCompiler(code: string, lessonId: string | undefined): {
     feedback = "### Variables Verified!\n\nYou successfully used `mut` for mutable declarations and assigned immutable names. Real-world systems developers use this to optimize assembly registrar performance. Ready for Chapter 2: Functions.";
   } else if (lessonId === "functions") {
     feedback = "### Functions Mastered!\n\nYou declared a clean custom recipe with modular parameters. Notice how clean capitalized parameter types such as `Number` look side-by-side with variables. Fantastic!";
+  } else if (lessonId === "mobile_intro") {
+    feedback = "### Kpalasa UI Rendered Live! 📱\n\nYou just built your first Ovie Mobile element stream using standard declaration boundaries! Click on the **Virtual Device 📱** tab in the Sandbox console below to see your parsed smartphone interface rendered in real-time and test taps!";
+  } else if (lessonId === "mobile_state") {
+    feedback = "### Mobile APK Compiler Initiated! 🚀\n\nYou declared your Mobile Dashboard controls! The compiler successfully validated target references. By pushing this layout code of yours to main/master branch, GitHub Applets will compile it into an Android `.apk` distribution package available for download in GitHub Actions!";
   }
 
   return { success, compilationLogs, stdout: finalStdout, feedback };

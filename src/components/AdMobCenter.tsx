@@ -12,12 +12,17 @@ import {
   ToggleLeft,
   ToggleRight,
   Eye,
-  MousePointerClick
+  MousePointerClick,
+  Link2,
+  Globe,
+  HelpCircle,
+  Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { AdMobStats, AdUnit } from "../types";
 
 interface AdMobCenterProps {
+  theme?: "dark" | "light";
   stats: AdMobStats;
   adUnits: AdUnit[];
   setStats: React.Dispatch<React.SetStateAction<AdMobStats>>;
@@ -48,6 +53,7 @@ export const showRewardedAd = (onComplete: (unlocked: boolean) => void) => {
 };
 
 export default function AdMobCenter({
+  theme = "dark",
   stats,
   adUnits,
   setStats,
@@ -56,37 +62,100 @@ export default function AdMobCenter({
   setTestMode,
   onClose,
 }: AdMobCenterProps) {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "ad_units" | "integration">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "ad_units" | "integration" | "link_account">("dashboard");
+
+  // Custom Google Account configuration states
+  const [isLinked, setIsLinked] = useState(false);
+  const [appId, setAppId] = useState("ca-app-pub-3677451023005724~9721632727");
+  const [adsenseId, setAdsenseId] = useState("ca-pub-3677451023005724");
+  const [bannerId, setBannerId] = useState("ca-app-pub-3677451023005724/1839210455");
+  const [interstitialId, setInterstitialId] = useState("ca-app-pub-3677451023005724/4960321288");
+  const [rewardedId, setRewardedId] = useState("ca-app-pub-3677451023005724/3574361611");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Load configuration from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ovie_custom_admob_config");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setIsLinked(parsed.isLinked ?? false);
+        if (parsed.appId) setAppId(parsed.appId);
+        if (parsed.adsenseId) setAdsenseId(parsed.adsenseId);
+        if (parsed.bannerId) setBannerId(parsed.bannerId);
+        if (parsed.interstitialId) setInterstitialId(parsed.interstitialId);
+        if (parsed.rewardedId) setRewardedId(parsed.rewardedId);
+      }
+    } catch (err) {
+      console.error("Failed to load custom AdMob configurations:", err);
+    }
+  }, []);
+
+  // Save changes and update main state
+  const handleSaveConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    const config = {
+      isLinked,
+      appId: appId.trim(),
+      adsenseId: adsenseId.trim(),
+      bannerId: bannerId.trim(),
+      interstitialId: interstitialId.trim(),
+      rewardedId: rewardedId.trim()
+    };
+    
+    localStorage.setItem("ovie_custom_admob_config", JSON.stringify(config));
+
+    // Update parent's state
+    setAdUnits((prev) =>
+      prev.map((unit) => {
+        if (unit.type === "Banner") {
+          return { ...unit, adMobId: isLinked ? config.bannerId : "ca-app-pub-3677451023005724/1839210455" };
+        }
+        if (unit.type === "Interstitial") {
+          return { ...unit, adMobId: isLinked ? config.interstitialId : "ca-app-pub-3677451023005724/4960321288" };
+        }
+        if (unit.type === "Rewarded") {
+          return { ...unit, adMobId: isLinked ? config.rewardedId : "ca-app-pub-3677451023005724/3574361611" };
+        }
+        return unit;
+      })
+    );
+
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
+  };
 
   // Format monetary sums
   const formatMoney = (val: number) => `$${val.toFixed(2)}`;
 
   return (
-    <div className="bg-slate-900 border-l border-slate-800 text-slate-100 flex flex-col h-full w-full max-w-md select-none">
+    <div className={`flex flex-col h-full w-full max-w-md select-none transition-all duration-300 ${theme === "light" ? "bg-white text-slate-900 border-l border-slate-200" : "bg-slate-900 border-l border-slate-800 text-slate-100"}`}>
       {/* Dynamic Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+      <div className={`p-4 border-b flex items-center justify-between transition-colors duration-300 ${theme === "light" ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}>
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-yellow-500 rounded text-slate-950 font-black text-xs">AdMob</div>
-          <h2 className="font-semibold text-sm tracking-tight text-slate-100">Monetization Dashboard</h2>
+          <h2 className={`font-semibold text-sm tracking-tight transition-colors duration-300 ${theme === "light" ? "text-slate-800" : "text-slate-100"}`}>Monetization Dashboard</h2>
         </div>
         <button
           onClick={onClose}
           id="close-admob-center"
-          className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+          className={`p-1 rounded transition-colors ${theme === "light" ? "hover:bg-slate-200 text-slate-500 hover:text-slate-800" : "hover:bg-slate-800 text-slate-400 hover:text-slate-200"}`}
         >
           <X size={18} />
         </button>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex bg-slate-950 px-2 justify-around border-b border-slate-800">
+      <div className={`flex px-2 justify-around border-b transition-colors duration-300 ${theme === "light" ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-800"}`}>
         <button
           onClick={() => setActiveTab("dashboard")}
           id="admob-tab-dashboard"
-          className={`py-2.5 px-3 text-xs font-medium border-b-2 transition-all ${
+          className={`py-2.5 px-2 text-[11px] font-medium border-b-2 transition-all ${
             activeTab === "dashboard"
-              ? "border-yellow-500 text-yellow-400"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "border-yellow-500 text-yellow-600 font-extrabold"
+              : theme === "light"
+                ? "border-transparent text-slate-500 hover:text-slate-800"
+                : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
           Performance
@@ -94,42 +163,59 @@ export default function AdMobCenter({
         <button
           onClick={() => setActiveTab("ad_units")}
           id="admob-tab-ad_units"
-          className={`py-2.5 px-3 text-xs font-medium border-b-2 transition-all ${
+          className={`py-2.5 px-2 text-[11px] font-medium border-b-2 transition-all ${
             activeTab === "ad_units"
-              ? "border-yellow-500 text-yellow-400"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "border-yellow-500 text-yellow-600 font-extrabold"
+              : theme === "light"
+                ? "border-transparent text-slate-550 hover:text-slate-800"
+                : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
-          Ad Units ({adUnits.length})
+          Ad Units
         </button>
         <button
           onClick={() => setActiveTab("integration")}
           id="admob-tab-integration"
-          className={`py-2.5 px-3 text-xs font-medium border-b-2 transition-all ${
+          className={`py-2.5 px-2 text-[11px] font-medium border-b-2 transition-all ${
             activeTab === "integration"
-              ? "border-yellow-500 text-yellow-400"
-              : "border-transparent text-slate-400 hover:text-slate-200"
+              ? "border-yellow-500 text-yellow-600 font-extrabold"
+              : theme === "light"
+                ? "border-transparent text-slate-550 hover:text-slate-800"
+                : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
         >
-          Developer SDK
+          SDK Guide
+        </button>
+        <button
+          onClick={() => setActiveTab("link_account")}
+          id="admob-tab-link_account"
+          className={`py-2.5 px-2 text-[11px] font-medium border-b-2 transition-all ${
+            activeTab === "link_account"
+              ? "border-yellow-500 text-yellow-600 font-extrabold"
+              : theme === "light"
+                ? "border-transparent text-slate-550 hover:text-slate-800"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          Link Account
         </button>
       </div>
 
       {/* Scrollable Stats Panel */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/60 font-sans">
+      <div className={`flex-1 overflow-y-auto p-4 space-y-4 font-sans transition-colors duration-300 ${theme === "light" ? "bg-white text-slate-800" : "bg-slate-900/60 text-slate-300"}`}>
         {/* Toggle Test Mode */}
-        <div className="flex items-center justify-between bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+        <div className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${theme === "light" ? "bg-slate-50 border-slate-200" : "bg-slate-950/80 border-slate-850"}`}>
           <div>
-            <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <div className={`text-xs font-bold flex items-center gap-1.5 ${theme === "light" ? "text-slate-800" : "text-slate-200"}`}>
               <span>Google Test Ads Mode</span>
               <span className={`w-2 h-2 rounded-full ${testMode ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
             </div>
-            <p className="text-[10px] text-slate-400">Forces sandboxed ad elements inside the tutorial</p>
+            <p className={`text-[10px] ${theme === "light" ? "text-slate-550 text-slate-500" : "text-slate-400"}`}>Forces sandboxed ad elements inside the tutorial</p>
           </div>
           <button
             onClick={() => setTestMode(!testMode)}
             id="toggle-test-mode"
-            className="text-slate-300 hover:text-white transition-colors"
+            className={`transition-colors ${theme === "light" ? "text-slate-650 hover:text-slate-900" : "text-slate-300 hover:text-white"}`}
           >
             {testMode ? (
               <ToggleRight className="text-green-500" size={36} />
@@ -142,16 +228,16 @@ export default function AdMobCenter({
         {activeTab === "dashboard" && (
           <div className="space-y-4">
             {/* Active AdMob App ID Indicator */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 space-y-1">
-              <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider block">
-                Active AdMob App ID (Production ready)
+            <div className={`border rounded-lg p-3 space-y-1 ${isLinked ? "bg-green-500/10 border-green-500/30" : "bg-amber-500/10 border-amber-500/30"}`}>
+              <span className={`text-[10px] font-semibold uppercase tracking-wider block ${isLinked ? "text-green-400" : "text-amber-400"}`}>
+                {isLinked ? "Linked Google AdMob App ID" : "Active AdMob App ID (Playground)"}
               </span>
               <p className="text-[11px] font-mono font-bold text-slate-100 select-all">
-                ca-app-pub-3677451023005724~9721632727
+                {isLinked ? appId : "ca-app-pub-3677451023005724~9721632727"}
               </p>
               <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-400 leading-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span>Status: Connected to SouthWarridev Open Source Monetization</span>
+                <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isLinked ? "bg-green-500" : "bg-amber-500"}`} />
+                <span>Status: {isLinked ? "Connected to Custom Publisher Stream" : "Connected to SouthWarridev Open Source Monetization"}</span>
               </div>
             </div>
 
@@ -345,6 +431,147 @@ export default function AdMobCenter({
               </p>
             </div>
           </div>
+        )}
+
+        {activeTab === "link_account" && (
+          <form onSubmit={handleSaveConfig} className="space-y-4 font-sans text-slate-200 pb-6">
+            <div className="space-y-1 bg-slate-950 p-3 rounded-lg border border-slate-850">
+              <h3 className="text-xs font-bold text-slate-100 flex items-center gap-1.5 leading-none">
+                <Link2 size={13} className="text-yellow-500" />
+                <span>Configure Live Google Ads Stream</span>
+              </h3>
+              <p className="text-[10px] text-slate-400 leading-normal mt-1">
+                Customize references to direct ad revenue generated in the Ovie compiler sandbox straight to your personal Google publisher ledger.
+              </p>
+            </div>
+
+            {/* Enable/Disable toggle */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/40 border border-slate-850">
+              <div className="space-y-0.5">
+                <label className="text-xs font-bold text-slate-200 block">Custom Stream Active</label>
+                <span className="text-[9px] text-slate-500 block">Use custom IDs in ad units and guides</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLinked(!isLinked)}
+                className="text-slate-300 hover:text-white transition-all pointer-events-auto"
+              >
+                {isLinked ? (
+                  <ToggleRight className="text-green-500" size={32} />
+                ) : (
+                  <ToggleLeft className="text-slate-600" size={32} />
+                )}
+              </button>
+            </div>
+
+            {/* Custom Inputs */}
+            <div className={`space-y-2.5 transition-all ${isLinked ? "opacity-100 pointer-events-auto" : "opacity-40 pointer-events-none"}`}>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wide">
+                  1. Google AdSense Publisher Client ID (Web ads client)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-2.5 top-2.5 text-slate-650" size={13} />
+                  <input
+                    type="text"
+                    value={adsenseId}
+                    onChange={(e) => setAdsenseId(e.target.value)}
+                    placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-yellow-500/50 rounded-lg pl-8 p-2 text-[11px] font-mono font-semibold text-slate-100 outline-none transition-all"
+                  />
+                </div>
+                <p className="text-[9px] text-slate-500 leading-none">Format: <code className="text-slate-400">ca-pub-XXXXXXXXXXXXX</code> (Find in AdSense Account &gt; Settings)</p>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wide">
+                  2. Google AdMob App ID (Mobile app client)
+                </label>
+                <div className="relative">
+                  <Smartphone className="absolute left-2.5 top-2.5 text-slate-650" size={13} />
+                  <input
+                    type="text"
+                    value={appId}
+                    onChange={(e) => setAppId(e.target.value)}
+                    placeholder="ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-yellow-500/50 rounded-lg pl-8 p-2 text-[11px] font-mono font-semibold text-slate-100 outline-none transition-all"
+                  />
+                </div>
+                <p className="text-[9px] text-slate-500 leading-none">Format: <code className="text-slate-400">ca-app-pub-XXXXX~XXXXX</code> (Find in AdMob Console &gt; Apps)</p>
+              </div>
+
+              {/* Units config */}
+              <div className="p-3 bg-slate-950/45 rounded-lg border border-slate-850 space-y-2.5">
+                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase tracking-wide">
+                  <Target size={11} className="text-amber-500" /> AdMob Unit Identifiers
+                </span>
+
+                <div className="space-y-1">
+                  <label className="text-[9.5px] text-slate-450 block">Banner Slot ID</label>
+                  <input
+                    type="text"
+                    value={bannerId}
+                    onChange={(e) => setBannerId(e.target.value)}
+                    placeholder="ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-yellow-500/50 rounded-md p-1.5 text-[10.5px] font-mono text-slate-100 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9.5px] text-slate-450 block">Interstitial Dialog ID</label>
+                  <input
+                    type="text"
+                    value={interstitialId}
+                    onChange={(e) => setInterstitialId(e.target.value)}
+                    placeholder="ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-yellow-500/50 rounded-md p-1.5 text-[10.5px] font-mono text-slate-100 outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9.5px] text-slate-450 block">Rewarded Video ID</label>
+                  <input
+                    type="text"
+                    value={rewardedId}
+                    onChange={(e) => setRewardedId(e.target.value)}
+                    placeholder="ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-yellow-500/50 rounded-md p-1.5 text-[10.5px] font-mono text-slate-100 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Save trigger */}
+            <button
+              type="submit"
+              className="w-full bg-yellow-500 hover:bg-yellow-400 text-slate-950 text-xs py-2 rounded-lg font-bold transition-all shadow hover:shadow-yellow-500/20 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer pointer-events-auto"
+            >
+              {saveSuccess ? (
+                <>
+                  <Check size={14} className="stroke-[3]" />
+                  <span>Linked & Saved Successfully!</span>
+                </>
+              ) : (
+                <span>Save & Apply Custom IDs</span>
+              )}
+            </button>
+
+            {/* Step by step helpful guidance documentation */}
+            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-850 space-y-2">
+              <span className="text-[9.5px] font-semibold text-slate-200 flex items-center gap-1">
+                <HelpCircle size={11} className="text-yellow-500" />
+                <span>How to find your Publisher credential lines:</span>
+              </span>
+              <ul className="text-[9.5px] text-slate-400 space-y-1.5 list-disc pl-3 leading-relaxed">
+                <li>
+                  <strong className="text-slate-350">Google AdSense (for Websites)</strong>: Access your AdSense account dashboard, select <strong className="text-slate-350">Account info</strong> to grab your <em className="text-slate-300">Publisher ID</em> (labeled e.g., <em className="text-slate-300">ca-pub-XXXXXXXXXXXXX</em>).
+                </li>
+                <li>
+                  <strong className="text-slate-350">Google AdMob (for Mobile Apps)</strong>: Go to <strong className="text-slate-350">Apps &gt; View all apps</strong> to create your active app profile and obtain the <em className="text-slate-300">App ID</em>, then configure matching individual Banner, Interstitial, and Rewarded video units.
+                </li>
+              </ul>
+            </div>
+          </form>
         )}
       </div>
 

@@ -52,6 +52,7 @@ export function OvieCapIcon({ className = "w-6 h-6" }: { className?: string }) {
 }
 
 interface SidebarProps {
+  theme?: "dark" | "light";
   chapters: Chapter[];
   currentLesson: Lesson;
   setCurrentLesson: (lesson: Lesson) => void;
@@ -67,6 +68,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
+  theme = "dark",
   chapters,
   currentLesson,
   setCurrentLesson,
@@ -94,40 +96,42 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`bg-slate-950 border-r border-slate-800 flex flex-col h-full shrink-0 transition-all duration-300 z-30 ${
+      className={`border-r flex flex-col h-full shrink-0 transition-all duration-300 z-30 ${
         activeMobileMenu ? "fixed inset-y-0 left-0 w-72" : "hidden md:flex w-64"
-      }`}
+      } ${theme === "light" ? "bg-white border-slate-350 bg-white border-slate-300" : "bg-slate-950 border-slate-800"}`}
     >
       {/* Brand Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div className={`p-4 border-b flex items-center justify-between ${theme === "light" ? "border-slate-200 bg-slate-50" : "border-slate-800 bg-slate-950"}`}>
         <div className="flex items-center gap-2.5">
           <OvieCapIcon className="w-8 h-8 drop-shadow-md" />
           <div>
-            <h1 className="text-xs font-bold leading-none tracking-tight text-amber-400 font-sans uppercase">
+            <h1 className={`text-xs font-bold leading-none tracking-tight font-sans uppercase ${theme === "light" ? "text-amber-600" : "text-amber-400"}`}>
               Ovie Academy
             </h1>
-            <span className="text-[9px] text-slate-500 font-mono tracking-tighter block mt-0.5">
+            <span className={`text-[9px] font-mono tracking-tighter block mt-0.5 ${theme === "light" ? "text-slate-500" : "text-slate-500"}`}>
               by @southwarridev • open source
             </span>
           </div>
         </div>
         <button
           onClick={() => setActiveMobileMenu(false)}
-          className="md:hidden p-1 bg-slate-900 rounded text-slate-400 hover:text-slate-100"
+          className={`md:hidden p-1 rounded transition-colors ${theme === "light" ? "bg-slate-100 text-slate-600 hover:text-slate-900" : "bg-slate-900 text-slate-450 hover:text-slate-100"}`}
         >
           <ChevronRight size={16} />
         </button>
       </div>
 
       {/* Integration Shortcuts panel */}
-      <div className="p-3 bg-slate-900/60 border-b border-slate-800/80 space-y-2 select-none">
+      <div className={`p-3 space-y-2 select-none border-b ${theme === "light" ? "bg-slate-50/50 border-slate-200" : "bg-slate-905 bg-slate-900/60 border-slate-800/80"}`}>
         <button
           onClick={onToggleAdMob}
           id="toggle-admob-sidebar"
           className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
             isAdMobOpen
-              ? "bg-amber-500/20 text-amber-400 border border-amber-500/50 shadow-inner"
-              : "bg-slate-950 text-slate-300 hover:bg-slate-900 border border-slate-850"
+              ? "bg-amber-500/20 text-amber-500 border border-amber-500/50 shadow-inner"
+              : theme === "light"
+                ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-250"
+                : "bg-slate-950 text-slate-300 hover:bg-slate-900 border border-slate-850"
           }`}
         >
           <span className="flex items-center gap-1.5 font-sans">
@@ -145,13 +149,17 @@ export default function Sidebar({
         <button
           onClick={onSupportWithAd}
           id="trigger-sponsor-ad"
-          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all shadow-sm"
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium border transition-all shadow-sm ${
+            theme === "light"
+              ? "bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 border-amber-500/30"
+              : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20"
+          }`}
         >
           <span className="flex items-center gap-1.5 font-sans">
             <Sparkles size={13} className="text-amber-400 animate-pulse" />
             Watch Support Ad
           </span>
-          <span className="text-[9px] bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-350 font-mono font-semibold">
+          <span className="text-[9px] bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-300 font-mono font-semibold">
             {supportCount > 0 ? `Supporter x${supportCount}` : "Watch"}
           </span>
         </button>
@@ -161,7 +169,7 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {chapters.map((chapter) => (
           <div key={chapter.id} className="space-y-1.5">
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1.5 py-1 select-none">
+            <h3 className={`text-[10px] font-bold uppercase tracking-widest px-1.5 py-1 select-none ${theme === "light" ? "text-slate-400" : "text-slate-500"}`}>
               {chapter.title}
             </h3>
             <div className="space-y-0.5">
@@ -174,10 +182,12 @@ export default function Sidebar({
                     key={lesson.id}
                     onClick={() => handleLessonClick(lesson)}
                     id={`sidebar-lesson-${lesson.id}`}
-                    className={`w-full text-left flex items-start gap-2.5 px-3 py-2 rounded-lg text-[11px] font-medium leading-normal tracking-wide transition-all ${
+                    className={`w-full text-left flex items-start gap-2.5 px-3 py-2 rounded-lg text-[11px] font-medium leading-normal tracking-wide transition-all border ${
                       active
-                        ? "bg-amber-500/15 text-amber-400 border border-amber-550/30 font-semibold"
-                        : "text-slate-400 hover:bg-slate-950/80 hover:text-slate-200 border border-transparent"
+                        ? "bg-amber-500/15 text-amber-600 border-amber-550/30 font-semibold"
+                        : theme === "light"
+                          ? "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border-transparent"
+                          : "text-slate-400 hover:bg-slate-950/80 hover:text-slate-200 border-transparent"
                     }`}
                   >
                     {/* Visual Status Indicator Icon */}
@@ -211,9 +221,9 @@ export default function Sidebar({
       </div>
 
       {/* Simple Sidebar footer */}
-      <div className="p-3 border-t border-slate-900 bg-slate-950 text-center select-none shrink-0 flex items-center justify-center gap-1.5">
+      <div className={`p-3 border-t text-center select-none shrink-0 flex items-center justify-center gap-1.5 ${theme === "light" ? "bg-slate-50 border-slate-205 border-slate-200" : "bg-slate-950 border-slate-900"}`}>
         <Heart size={11} className="text-amber-500 fill-amber-500/20" />
-        <span className="text-[9px] text-slate-500 font-mono tracking-tight">
+        <span className={`text-[9px] font-mono tracking-tight ${theme === "light" ? "text-slate-506 text-slate-500" : "text-slate-500"}`}>
           Ad-Supported Open Source project
         </span>
       </div>

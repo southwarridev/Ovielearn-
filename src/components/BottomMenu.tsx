@@ -21,6 +21,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 
 interface BottomMenuProps {
+  theme?: "dark" | "light";
   testMode: boolean;
   onRunTestAd: (type: "interstitial" | "rewarded" | "banner") => void;
   supportCount: number;
@@ -48,6 +49,7 @@ interface GithubUserProfile {
 }
 
 export default function BottomMenu({
+  theme = "dark",
   testMode,
   onRunTestAd,
   supportCount,
@@ -251,7 +253,7 @@ export default function BottomMenu({
       <div className="max-w-7xl mx-auto flex flex-col items-end gap-2 text-left">
         
         {/* Floating Quick Tab Access Switcher */}
-        <div className="flex bg-slate-950/90 backdrop-blur border border-slate-800 rounded-full p-1 shadow-lg pointer-events-auto h-9 items-center">
+        <div className={`flex border rounded-full p-1 shadow-lg pointer-events-auto h-9 items-center transition-all duration-300 ${theme === "light" ? "bg-white/95 border-slate-250 shadow-slate-300/40" : "bg-slate-950/90 backdrop-blur border-slate-800"}`}>
           <button
             onClick={() => {
               setIsOpen(!isOpen);
@@ -260,27 +262,29 @@ export default function BottomMenu({
             className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10.5px] font-semibold transition-all ${
               isOpen && !isMinimized
                 ? "bg-amber-500 text-slate-950 font-bold"
-                : "text-slate-350 hover:text-slate-100"
+                : theme === "light"
+                  ? "text-slate-600 hover:text-slate-900"
+                  : "text-slate-350 hover:text-slate-100"
             }`}
           >
             <Github size={12} className={isOpen && !isMinimized ? "" : "text-amber-500"} />
             <span>GitHub Console {isOpen && !isMinimized ? "Active" : "Closed"}</span>
           </button>
           
-          <span className="w-px h-4 bg-slate-800/80 mx-1" />
+          <span className={`w-px h-4 mx-1 ${theme === "light" ? "bg-slate-200" : "bg-slate-800/80"}`} />
 
           {/* Quick Stats overview widget */}
           <div className="hidden sm:flex items-center gap-3 px-3">
-            <div className="text-[9px] flex items-center gap-1 text-slate-400">
+            <div className={`text-[9px] flex items-center gap-1 ${theme === "light" ? "text-slate-500 font-medium" : "text-slate-400"}`}>
               <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
               <span>stars:</span>
-              <span className="text-slate-200 font-mono font-bold">
+              <span className={`font-mono font-bold ${theme === "light" ? "text-slate-900" : "text-slate-200"}`}>
                 {repoStats?.stars || 12}
               </span>
             </div>
-            <div className="text-[9px] flex items-center gap-1 text-slate-400">
+            <div className={`text-[9px] flex items-center gap-1 ${theme === "light" ? "text-slate-500 font-medium" : "text-slate-400"}`}>
               <span>forks:</span>
-              <span className="text-slate-200 font-mono font-bold">
+              <span className={`font-mono font-bold ${theme === "light" ? "text-slate-900" : "text-slate-200"}`}>
                 {repoStats?.forks || 3}
               </span>
             </div>
@@ -295,14 +299,14 @@ export default function BottomMenu({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 15, scale: 0.99 }}
               transition={{ duration: 0.22 }}
-              className="w-full max-w-lg border border-slate-800/90 bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[415px] pointer-events-auto shadow-amber-950/10"
+              className={`w-full max-w-lg border rounded-xl overflow-hidden shadow-2xl flex flex-col h-[415px] pointer-events-auto transition-all duration-300 ${theme === "light" ? "bg-white border-slate-300 shadow-xl shadow-slate-300/40" : "border-slate-800/90 bg-slate-900 shadow-amber-950/10"}`}
             >
               {/* Moveable Top Bar and Drag instructions */}
-              <div className="p-3 bg-slate-950 flex items-center justify-between border-b border-slate-850 shrink-0">
+              <div className={`p-3 flex items-center justify-between border-b shrink-0 transition-colors ${theme === "light" ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-slate-850"}`}>
                 <div className="flex items-center gap-2">
                   <Github size={14} className="text-amber-500 animate-pulse" />
                   <div>
-                    <h3 className="text-xs font-black text-slate-100 tracking-tight leading-none">
+                    <h3 className={`text-xs font-black tracking-tight leading-none ${theme === "light" ? "text-slate-900" : "text-slate-100"}`}>
                       Ovie Platform Bridge & Code Testing Center
                     </h3>
                     <span className="text-[9px] font-mono text-slate-500 tracking-wide uppercase leading-normal">
@@ -330,13 +334,15 @@ export default function BottomMenu({
               </div>
 
               {/* Quick Tab sub-navigation menu */}
-              <div className="flex bg-slate-950/40 border-b border-slate-850 justify-start px-2 gap-1 shrink-0">
+              <div className={`flex border-b justify-start px-2 gap-1 shrink-0 ${theme === "light" ? "bg-slate-50 border-slate-200" : "bg-slate-955 bg-slate-950/40 border-slate-850"}`}>
                 <button
                   onClick={() => setActiveTab("github")}
                   className={`py-2 px-3 text-[10.5px] font-bold border-b-2 transition-all flex items-center gap-1.5 ${
                     activeTab === "github"
-                      ? "border-amber-500 text-amber-400 font-extrabold"
-                      : "border-transparent text-slate-400 hover:text-slate-200"
+                      ? "border-amber-500 text-amber-500 font-extrabold"
+                      : theme === "light"
+                        ? "border-transparent text-slate-550 hover:text-slate-850"
+                        : "border-transparent text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   <Github size={11} />
@@ -346,8 +352,10 @@ export default function BottomMenu({
                   onClick={() => setActiveTab("testing")}
                   className={`py-2 px-3 text-[10.5px] font-bold border-b-2 transition-all flex items-center gap-1.5 ${
                     activeTab === "testing"
-                      ? "border-amber-500 text-amber-400 font-extrabold"
-                      : "border-transparent text-slate-400 hover:text-slate-200"
+                      ? "border-amber-500 text-amber-500 font-extrabold"
+                      : theme === "light"
+                        ? "border-transparent text-slate-550 hover:text-slate-850"
+                        : "border-transparent text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   <Terminal size={11} />
@@ -360,8 +368,10 @@ export default function BottomMenu({
                   }}
                   className={`py-2 px-3 text-[10.5px] font-bold border-b-2 transition-all flex items-center gap-1.5 ${
                     activeTab === "diagnostics"
-                      ? "border-amber-500 text-amber-400 font-extrabold"
-                      : "border-transparent text-slate-400 hover:text-slate-200"
+                      ? "border-amber-500 text-amber-500 font-extrabold"
+                      : theme === "light"
+                        ? "border-transparent text-slate-550 hover:text-slate-850"
+                        : "border-transparent text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   <Activity size={11} />
@@ -370,7 +380,7 @@ export default function BottomMenu({
               </div>
 
               {/* Drawer Content */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/40 text-slate-300">
+              <div className={`flex-1 overflow-y-auto p-4 space-y-4 transition-colors duration-300 ${theme === "light" ? "bg-white text-slate-850" : "bg-slate-905 bg-slate-900/40 text-slate-300"}`}>
                 
                 {activeTab === "github" && (
                   <div className="space-y-4">
@@ -661,7 +671,7 @@ export default function BottomMenu({
               </div>
 
               {/* Status Bar Footer inside drawer */}
-              <div className="p-2.5 bg-slate-950 text-[10px] font-mono text-slate-500 flex justify-between items-center border-t border-slate-850 shrink-0">
+              <div className={`p-2.5 text-[10px] font-mono flex justify-between items-center border-t shrink-0 ${theme === "light" ? "bg-slate-50 border-slate-200 text-slate-500" : "bg-slate-950 border-slate-850 text-slate-500"}`}>
                 <div className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   <span>Platform Bridge Active</span>
