@@ -1,5 +1,5 @@
 {
-  "name": "Ovie Academy & Compiler Sandbox",
+  "name": "OvieLearn",
   "description": "An interactive systems coding course for the Ovie programming language. Features a modern compiler playground, w3schools challenges, AI tutor diagnostics, and monetized Google AdMob simulation tools.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

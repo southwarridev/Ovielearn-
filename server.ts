@@ -36,6 +36,60 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "healthy", language: "Ovie", version: "2.3", timestamp: new Date() });
 });
 
+// Live Prettier and Custom Format endpoint
+app.post("/api/format", async (req, res) => {
+  const { code } = req.body;
+  if (!code) {
+    return res.json({ success: true, formatted: "" });
+  }
+  
+  try {
+    const prettier = await import("prettier");
+    let formatted = code;
+    try {
+      // Ovie is a custom language, so standard formatting fits well with general code beautifiers
+      formatted = await prettier.format(code, {
+        parser: "babel",
+        semi: true,
+        singleQuote: false,
+        tabWidth: 2,
+        useTabs: false,
+      });
+    } catch (prettierErr: any) {
+      console.log("Prettier plugin loader bypassed, running structural compiler brace indentation formatter:", prettierErr.message);
+      
+      // Elegant, foolproof brace-indentation formatter for native Ovie code layouts
+      const lines = code.split("\n");
+      let indentLevel = 0;
+      
+      const formattedLines = lines.map((line) => {
+        let trimmed = line.trim();
+        
+        // Decrease indent if line begins with closing brackets
+        if (trimmed.startsWith("}") || trimmed.startsWith("]")) {
+          indentLevel = Math.max(0, indentLevel - 1);
+        }
+        
+        const indentSpace = "  ".repeat(indentLevel);
+        const result = trimmed ? `${indentSpace}${trimmed}` : "";
+        
+        // Increase indent if line ends with opening brackets
+        if (trimmed.endsWith("{") || trimmed.endsWith("[")) {
+          indentLevel += 1;
+        }
+        
+        return result;
+      });
+      
+      formatted = formattedLines.join("\n");
+    }
+    
+    return res.json({ success: true, formatted });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Live GitHub Info proxy: Fetches real statistics of any user / repo
 app.get("/api/github/repo", async (req, res) => {
   const repoName = (req.query.repo as string) || "southwarridev/ovie";

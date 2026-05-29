@@ -8,7 +8,8 @@ import {
   Activity,
   FileCode,
   GraduationCap,
-  Scale
+  Scale,
+  AlignLeft
 } from "lucide-react";
 
 interface CodeSandboxProps {
@@ -23,6 +24,7 @@ export default function CodeSandbox({
   const [code, setCode] = useState("");
   const [activeTab, setActiveTab] = useState<"terminal" | "compiler" | "tutor">("terminal");
   const [running, setRunning] = useState(false);
+  const [formatting, setFormatting] = useState(false);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [stdout, setStdout] = useState("");
   const [logs, setLogs] = useState("");
@@ -87,6 +89,29 @@ export default function CodeSandbox({
     }
   };
 
+  // Format code via Prettier or fallback systems indentation formatter
+  const handleFormatCode = async () => {
+    if (!code || formatting) return;
+    setFormatting(true);
+    try {
+      const res = await fetch("/api/format", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.formatted) {
+          setCode(data.formatted);
+        }
+      }
+    } catch (err) {
+      console.error("Format error:", err);
+    } finally {
+      setFormatting(false);
+    }
+  };
+
   // Reset core code
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset your code helper to default class templates?")) {
@@ -136,6 +161,17 @@ export default function CodeSandbox({
             className="p-1.5 hover:bg-slate-900 rounded text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-850/60 transition-all active:scale-95"
           >
             <RotateCcw size={13} />
+          </button>
+
+          {/* Format Code */}
+          <button
+            onClick={handleFormatCode}
+            disabled={formatting || running}
+            title="Format Ovie Code (Prettier styles)"
+            className="flex items-center gap-1 hover:bg-slate-900 border border-slate-850 px-2.5 py-1 rounded-lg text-[10.5px] font-semibold text-slate-300 hover:text-slate-100 transition-all active:scale-95 disabled:opacity-40"
+          >
+            <AlignLeft size={11} className={formatting ? "animate-spin text-amber-500" : "text-amber-500"} />
+            <span>{formatting ? "Formatting..." : "Format Code"}</span>
           </button>
 
           {/* Ask Gemini Coach */}

@@ -19,13 +19,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Code Linter (tsc verification)
         run: npm run lint
+
+      - name: Run Unit Tests (Vitest verify formatting & compiler layout)
+        run: npm run test
 
       - name: Compile Application (Vite & ESBuild Server bundle)
         run: npm run build
