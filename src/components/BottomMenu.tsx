@@ -160,16 +160,7 @@ export default function BottomMenu({
       }
     } catch (err: any) {
       console.error("OAuth init error:", err);
-      // Fallback local mock authorization for seamless development preview inside iframe
-      setAuthenticatedProfile({
-        login: "southwarridev",
-        name: "Shedracker Habor",
-        avatarUrl: "https://avatars.githubusercontent.com/u/148419614?v=4",
-        htmlUrl: "https://github.com/southwarridev",
-        bio: "Full Stack Ovie Language designer and systems developer",
-        followers: 12,
-        publicRepos: 73,
-      });
+      alert("Authentication error: Could not initiate secure GitHub connection. Please verify client setup constraints.");
     }
   };
 

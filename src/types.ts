@@ -31,6 +31,7 @@ export interface AdMobStats {
   ecpm: number;
   clicks: number;
   matchRate: number;
+  hourlyActivity?: number[];
 }
 
 export interface AdUnit {
